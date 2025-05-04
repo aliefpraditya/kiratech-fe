@@ -54,51 +54,52 @@
       <v-row>
         <v-col cols="5">
           <v-text-field
-            class="rounded"
             v-model="searchQuery"
-            label="Search Users"
+            label="Search by name"
             clearable
-            dense
             prepend-inner-icon="mdi-magnify"
-            variant="solo"
+            variant="outlined"
+            dense
+            hide-details
             @input="filterUsers"
           ></v-text-field>
         </v-col>
       </v-row>
 
       <v-row class="mt-0">
-        <v-col cols="12">
-          <v-data-table
-            :headers="headers"
-            :items="filteredUsers"
-            :items-per-page="itemsPerPage"
-            :row-props="row_classes"
-            item-key="fullname"
-            hide-default-footer
-            class="all-row-align-top clickable-rows"
-            @click:row="selectUser"
-          >
-            <template #[`item.fullname`]="{ item }">
-              <span class="primary--text">
-                {{ item.name.title }} {{ item.fullname }}
-              </span>
-            </template>
-            <template #[`item.country`]="{ item }">
-              <span class="primary--text">
-                {{ item.location.country }}
-              </span>
-            </template>
-          </v-data-table>
-        </v-col>
-      </v-row>
-      <v-row align="center" justify="space-between">
-        <v-col cols="12">
-          <v-btn color="primary" @click="fetchUsers">
-            <v-icon>mdi-refresh</v-icon> Refresh</v-btn
-          >
-        </v-col>
+        <div class="table-container">
+          <table class="user-table" v-if="users.length > 0">
+            <thead>
+              <tr class="head-row">
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Country</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                class="body-row"
+                v-for="(user, index) in filteredUsers.slice(0, 10)"
+                :key="index"
+                @click="selectUser(index)"
+              >
+                <td class="light-grey">
+                  {{ user.name.title }} {{ user.fullname }}
+                </td>
+                <td class="light-grey">{{ user.gender }}</td>
+                <td class="dark-grey">{{ user.location.country }}</td>
+                <td class="light-grey">{{ user.email }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="button-container">
+            <button class="refresh-button" @click="fetchUsers">Refresh</button>
+          </div>
+        </div>
       </v-row>
       <v-pagination
+        class="my-0"
         v-model="currentPage"
         :length="totalPages"
         @input="fetchUsers"
@@ -140,6 +141,9 @@ export default {
       this.fetchUsers();
     },
   },
+  created() {
+    this.fetchUsers();
+  },
   methods: {
     async fetchUsers() {
       try {
@@ -171,10 +175,10 @@ export default {
           fullname: ` ${user.name.first} ${user.name.last}`,
         }));
     },
-    selectUser(event, user) {
-      this.selectedUser = user.item;
+    selectUser(index) {
+      this.selectedUser = this.users[index];
       this.dialog = true;
-      console.log("Selected user:", user.item);
+      console.log("Selected user:", this.selectedUser);
     },
 
     row_classes({ item }) {
@@ -192,64 +196,143 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.v-container {
-  margin-top: 20px;
+.table-container {
+  width: 3000px;
+  margin: 40px auto 130px;
 }
-.user-item {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  margin: 8px 0;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: black;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.button-action {
-  background: #ffffff;
-  color: #20aac9;
-  border: 1px solid #ffffff;
-  text-decoration: none;
-  font-size: 14px;
 
-  box-sizing: border-box;
-  &:hover {
-    background-color: #2563eb;
-    color: white;
-    text-decoration: none;
+// clear table css
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+.user-table {
+  width: 100%;
+  margin-bottom: 39px;
+  th {
+    color: #bcbcbc;
+    font-weight: 600;
+    font-size: 13px;
+    text-align: left;
+    padding: 18px 37px;
+    &:last-of-type {
+      text-align: right;
+    }
+  }
+  .body-row {
+    box-shadow: 0px 2px 10px 0px #0000001a;
+    border-radius: 8px;
     cursor: pointer;
-    pointer-events: auto;
-    .icon {
-      margin-right: 10px;
-      &.hover {
-        display: block;
+    border-spacing: 0 10px;
+    td {
+      padding: 31px 37px;
+      text-align: left;
+      &:last-of-type {
+        text-align: right;
       }
-      &.ori {
-        display: none;
+      &.light-grey {
+        color: #979797;
+        font-weight: 400;
+      }
+      &.dark-grey {
+        color: #303030;
+        font-weight: 400;
+      }
+      &.bold {
+        font-weight: 600;
+      }
+    }
+    &:hover {
+      box-shadow: 0px 0px 0px 2px #35bad8;
+      .bold {
+        color: #35bad8;
       }
     }
   }
 }
-.v-data-table {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  margin-top: 20px;
-  th {
-    background-color: #3b82f6;
-    color: white;
-    font-weight: bold;
-    padding: 16px;
-    border-radius: 8px 8px 0 0;
-  }
-  tbody {
-    background-color: white;
-    border-radius: 0 0 8px 8px;
-  }
-  tr {
+.button-container {
+  text-align: center;
+  .refresh-button {
+    outline: none;
+    border: none;
+    pointer-events: auto;
+    font-size: 14px;
+    line-height: 130%;
+    font-weight: 600;
+    border-radius: 5px;
+    padding: 16px 20px;
+    width: 169px;
+    height: 50px;
+    background: #35bad8;
+    color: #ffffff;
+    cursor: pointer;
     &:hover {
-      background-color: #e0e7ff;
+      background: #55d9f6;
+    }
+    .icon {
+      margin-right: 10px;
+    }
+  }
+}
+.popup-wrapper {
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 20%);
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  .popup-container {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 666px;
+    border-radius: 8px;
+    padding: 35px 47px;
+    background: #ffffff;
+    text-align: left;
+    box-sizing: border-box;
+    .close-button {
+      position: fixed;
+      top: 35px;
+      right: 47px;
+      cursor: pointer;
+    }
+    .name {
+      color: #303030;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 40px;
+    }
+    .detail-container {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 53px;
+      margin-bottom: 19px;
+      .label {
+        color: #bcbcbc;
+        font-size: 13px;
+        width: 54px;
+      }
+      .data {
+        color: #303030;
+        font-size: 14px;
+      }
     }
   }
 }
