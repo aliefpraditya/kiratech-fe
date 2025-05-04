@@ -71,10 +71,40 @@
           <table class="user-table" v-if="users.length > 0">
             <thead>
               <tr class="head-row">
-                <th>Name</th>
-                <th>Gender</th>
-                <th>Country</th>
-                <th>Email</th>
+                <th @click="sortTable('fullname')">
+                  Name
+                  <v-icon v-if="sortKey === 'fullname' && sortby === 'asc'"
+                    >mdi-arrow-up</v-icon
+                  >
+                  <v-icon v-if="sortKey === 'fullname' && sortby === 'desc'"
+                    >mdi-arrow-down</v-icon
+                  >
+                </th>
+                <th @click="sortTable('gender')">
+                  <v-icon v-if="sortKey === 'gender' && sortby === 'asc'"
+                    >mdi-arrow-up</v-icon
+                  >
+                  <v-icon v-if="sortKey === 'gender' && sortby === 'desc'"
+                    >mdi-arrow-down</v-icon
+                  >
+                  Gender
+                </th>
+                <th @click="sortTable('country')">
+                  <v-icon v-if="sortKey === 'country' && sortby === 'asc'"
+                    >mdi-arrow-up</v-icon
+                  >
+                  <v-icon v-if="sortKey === 'country' && sortby === 'desc'"
+                    >mdi-arrow-down</v-icon
+                  >Country
+                </th>
+                <th @click="sortTable('email')">
+                  <v-icon v-if="sortKey === 'email' && sortby === 'asc'"
+                    >mdi-arrow-up</v-icon
+                  >
+                  <v-icon v-if="sortKey === 'email' && sortby === 'desc'"
+                    >mdi-arrow-down</v-icon
+                  >Email
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -134,6 +164,9 @@ export default {
       currentPage: 1,
       itemsPerPage: 10,
       totalPages: 1,
+      keySort: "fullname",
+      sortby: ref("asc"),
+      sortKey: ref(""),
     };
   },
   watch: {
@@ -145,6 +178,24 @@ export default {
     this.fetchUsers();
   },
   methods: {
+    sortTable(key) {
+      console.log("Sorting by:", key);
+
+      if (this.sortKey === key) {
+        this.sortby = this.sortby === "asc" ? "desc" : "asc";
+        this.filteredUsers.reverse();
+      } else {
+        this.sortby = "asc";
+        this.sortKey = key;
+        this.filteredUsers.sort((a, b) => {
+          const valueA = a[key]?.toString().toLowerCase() || "";
+          const valueB = b[key]?.toString().toLowerCase() || "";
+          if (valueA < valueB) return -1;
+          if (valueA > valueB) return 1;
+          return 0;
+        });
+      }
+    },
     async fetchUsers() {
       try {
         const response = await axios.get(
@@ -224,6 +275,7 @@ td {
   width: 100%;
   margin-bottom: 39px;
   th {
+    cursor: pointer;
     color: #bcbcbc;
     font-weight: 600;
     font-size: 13px;
